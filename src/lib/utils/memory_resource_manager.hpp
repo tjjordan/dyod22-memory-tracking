@@ -1,6 +1,6 @@
 #pragma once
 
-#include <oneapi/tbb/concurrent_vector.h>
+#include <tbb/concurrent_vector.h>
 #include <functional>
 #include <map>
 
