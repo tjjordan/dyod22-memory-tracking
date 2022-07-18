@@ -2,6 +2,7 @@
 
 #include <string>
 #include <type_traits>
+#include "hyrise.hpp"
 
 namespace opossum {
 
@@ -37,5 +38,11 @@ template <typename L, typename R>
 struct JoinHashTraits<L, R, std::enable_if_t<std::is_same_v<R, pmr_string> || std::is_same_v<L, pmr_string>>> {
   using HashType = pmr_string;
 };
+
+template <typename T>
+PolymorphicAllocator<T> alloc(const std::string& operator_data_structure = "None") {
+  return PolymorphicAllocator<T>{
+      Hyrise::get().memory_resource_manager.get_memory_resource(OperatorType::JoinHash, operator_data_structure)};
+}
 
 }  // namespace opossum

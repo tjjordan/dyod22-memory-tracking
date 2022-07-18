@@ -10,6 +10,7 @@
 
 #include "hyrise.hpp"
 #include "operators/join_hash.hpp"
+#include "operators/join_hash/join_hash_traits.hpp"
 #include "operators/multi_predicate_join/multi_predicate_join_evaluator.hpp"
 #include "resolve_type.hpp"
 #include "scheduler/abstract_task.hpp"
@@ -32,12 +33,6 @@ namespace opossum {
 enum class JoinHashBuildMode { AllPositions, ExistenceOnly };
 
 using Hash = size_t;
-
-template <typename T>
-PolymorphicAllocator<T> alloc(const std::string& operator_data_structure = "None") {
-  return PolymorphicAllocator<T>{
-      Hyrise::get().memory_resource_manager.get_memory_resource(OperatorType::JoinHash, operator_data_structure)};
-}
 
 /*
 This is how elements of the input relations are saved after materialization.

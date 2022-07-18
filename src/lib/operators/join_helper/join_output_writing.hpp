@@ -6,13 +6,14 @@
 
 #include "storage/create_iterable_from_segment.hpp"
 #include "storage/segment_iterate.hpp"
+#include "operators/join_hash/join_hash_traits.hpp"
 
 namespace opossum {
 
 enum class OutputColumnOrder { LeftFirstRightSecond, RightFirstLeftSecond, RightOnly };
 
-using PosLists = std::vector<std::shared_ptr<const AbstractPosList>>;
-using PosListsByChunk = std::vector<std::shared_ptr<PosLists>>;
+using PosLists = pmr_vector<std::shared_ptr<const AbstractPosList>>;
+using PosListsByChunk = pmr_vector<std::shared_ptr<PosLists>>;
 
 /**
  * Returns a vector where each entry with index i references a PosLists object. The PosLists object
@@ -31,7 +32,7 @@ inline PosListsByChunk setup_pos_lists_by_chunk(const std::shared_ptr<const Tabl
 
   std::unordered_map<PosLists, std::shared_ptr<PosLists>, PosListsHasher> shared_pos_lists_by_pos_lists;
 
-  PosListsByChunk pos_lists_by_segment(input_table->column_count());
+  PosListsByChunk pos_lists_by_segment(input_table->column_count(), alloc<std::shared_ptr<PosLists>>("pos_lists_by_segment"));
   auto pos_lists_by_segment_it = pos_lists_by_segment.begin();
 
   const auto input_chunks_count = input_table->chunk_count();
@@ -40,7 +41,7 @@ inline PosListsByChunk setup_pos_lists_by_chunk(const std::shared_ptr<const Tabl
   // For every column, for every chunk
   for (ColumnID column_id{0}; column_id < input_columns_count; ++column_id) {
     // Get all the input pos lists so that we only have to pointer cast the segments once
-    auto pos_list_ptrs = std::make_shared<PosLists>(input_table->chunk_count());
+    auto pos_list_ptrs = std::make_shared<PosLists>(input_table->chunk_count(), alloc<std::shared_ptr<const AbstractPosList>>("pos_list_ptrs"));
     auto pos_lists_iter = pos_list_ptrs->begin();
 
     // Iterate over every chunk and add the chunks segment with column_id to pos_list_ptrs
